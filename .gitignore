@@ -8,7 +8,7 @@
 /bazel-out
 
 # environment
-/src/environments
+src/environments/secrets.ts
 
 # firebase
 .firebaserc

@@ -1,40 +1,34 @@
 <mat-toolbar color="primary">
-  <mat-icon>local_fire_department</mat-icon>
-  <span>KanbanFire</span>
+  <mat-toolbar-row>
+    <mat-icon>local_fire_department</mat-icon>
+    <span>KanbanFire</span>
+
+    <span class="flex-spacer"></span>
+
+    <div class="tb-content" *ngIf="auth.user$ | async as user; else login">
+      <span class="welcome">
+        Welcome back, {{ user.displayName.split(' ')[0] }}!
+        <img height="40px" [src]="user.photoURL"/>
+      </span>
+      <button mat-flat-button (click)="auth.signOut()">Sign Out</button>
+    </div>
+
+    <ng-template #login>
+      <button mat-flat-button (click)="auth.googleSignin()">Login with Google</button>
+    </ng-template>
+  </mat-toolbar-row>
 </mat-toolbar>
 
 
 <div class="content-wrapper">
-  <button mat-button (click)="newTask()">
-    <mat-icon>add</mat-icon>Add Task
-  </button>
-  <div class="container-wrapper">
-    <div class="container">
-      <h2>Backlog</h2>
-      <mat-card cdkDropList id="todo" #todoList="cdkDropList" [cdkDropListData]="todo | async" (cdkDropListDropped)="drop($event)" [cdkDropListConnectedTo]="[inProgressList, doneList]">
-        <p class="empty-label" *ngIf="(todo | async)!.length === 0">Empty</p>
-        <app-task cdkDrag *ngFor="let task of todo | async" [task]="task" (edit)="edit('todo', $event)">
-
-        </app-task>
-      </mat-card>
-    </div>
-    <div class="container">
-      <h2>In Progress</h2>
-      <mat-card cdkDropList id="inProgress" #inProgressList="cdkDropList" [cdkDropListData]="inProgress | async" (cdkDropListDropped)="drop($event)" [cdkDropListConnectedTo]="[todoList, doneList]">
-        <p class="empty-label" *ngIf="(inProgress | async)!.length === 0">Empty</p>
-        <app-task cdkDrag *ngFor="let task of inProgress | async" [task]="task" (edit)="edit('inProgress', $event)">
-
-        </app-task>
-      </mat-card>
-    </div>
-    <div class="container">
-      <h2>Done</h2>
-      <mat-card cdkDropList id="done" #doneList="cdkDropList" [cdkDropListData]="done | async" (cdkDropListDropped)="drop($event)" [cdkDropListConnectedTo]="[todoList, inProgressList]">
-        <p class="empty-label" *ngIf="(done | async)!.length === 0">Empty</p>
-        <app-task cdkDrag *ngFor="let task of done | async" [task]="task" (edit)="edit('done', $event)">
-
-        </app-task>
-      </mat-card>
-    </div>
+  <div *ngIf="auth.user$ | async as user; else other">
+    <app-task-list></app-task-list>
   </div>
+
+  <ng-template #other>
+    <div class="welcome-msg">
+      <h1>Welcome to KanbanFire!</h1>
+      <p>Please login to continue</p>
+    </div>
+  </ng-template>
 </div>

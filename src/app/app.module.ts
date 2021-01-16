@@ -18,12 +18,14 @@ import { AngularFireModule } from '@angular/fire';
 import { environment } from 'src/environments/environment';
 import { TaskComponent } from './task/task.component';
 import { TaskDialogComponent } from './task-dialog/task-dialog.component';
+import { TaskListComponent } from './task-list/task-list.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     TaskComponent,
-    TaskDialogComponent
+    TaskDialogComponent,
+    TaskListComponent
   ],
   imports: [
     BrowserModule,
