@@ -6,3 +6,8 @@
     margin-bottom: 10px;
     cursor: pointer;
 }
+
+.task-head {
+    display: flex;
+    justify-content: space-between;
+}
