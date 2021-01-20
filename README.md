@@ -1,27 +1,43 @@
 # KanbanFire
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.0.6.
+A basic Kanban board web application that allows users to login with a Google account and visualize ongoing projects by breaking them up into tasks in one of three ordered categories.
 
-## Development server
+Built by Jared Jacobson using Angular and Firebase.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+# Setup
+You will need Node installed on your computer and to create your own Firebase project.
 
-## Code scaffolding
+Start by installing the dependencies
+```
+npm i
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Then create a secrets.ts file in the /src/environments/ folder and enter your Firebase configuration
+```
+export const env = {
+    firebase: {
+        apiKey: "",
+        authDomain: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: "",
+        measurementId: ""
+    }
+}
+```
 
-## Build
+Now you can either serve the project locally for development
+```
+ng serve
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Build the files for production
+```
+ng build
+```
 
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Or deploy it using Firebase
+```
+ng deploy
+```
