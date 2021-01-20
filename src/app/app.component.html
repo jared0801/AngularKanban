@@ -7,7 +7,7 @@
 
     <div class="tb-content" *ngIf="auth.user$ | async as user; else login">
       <span class="welcome">
-        Welcome back, {{ user.displayName.split(' ')[0] }}!
+        <span class="text">Welcome back, {{ user.displayName.split(' ')[0] }}!</span>
         <img height="40px" [src]="user.photoURL"/>
       </span>
       <button mat-flat-button (click)="auth.signOut()">Sign Out</button>

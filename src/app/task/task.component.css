@@ -11,3 +11,12 @@
     display: flex;
     justify-content: space-between;
 }
+
+.mat-icon {
+    font-size: 20px;
+    width: 20px;
+}
+
+.edit {
+    margin: 0 0 0 8px;
+}

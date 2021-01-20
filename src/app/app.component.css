@@ -23,3 +23,15 @@
 .flex-spacer {
     flex: 1 1 auto;
 }
+
+@media only screen and (max-width: 600px) {
+    .welcome>.text {
+        display: none;
+    }
+    .tb-content {
+        justify-content: flex-end;
+    }
+    .welcome img {
+        margin-right: 10px;
+    }
+}

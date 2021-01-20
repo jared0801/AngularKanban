@@ -1,11 +1,12 @@
 <mat-card *ngIf="task" class="item">
     <mat-card-title class="task-head">
         <h2>{{ task.title }}</h2>
-            
+        
         <button
-            mat-fab
+            mat-mini-fab
             color="primary"
-            aria-labe="Delete"
+            aria-label="Edit"
+            class="edit"
             (click)="edit.emit(task)">
             <mat-icon>edit</mat-icon>
         </button>
