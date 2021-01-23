@@ -7,12 +7,15 @@ Built by Jared Jacobson using Angular and Firebase.
 # Setup
 You will need Node installed on your computer and to create your own Firebase project.
 
-Start by installing the dependencies
+
+You will need to start by setting up firebase
 ```
-npm i
+npm i -g firebase-tools
+firebase login
+firebase init 
 ```
 
-Then create a secrets.ts file in the /src/environments/ folder and enter your Firebase configuration
+Create a secrets.ts file in the /src/environments/ folder and enter your Firebase configuration
 ```
 export const env = {
     firebase: {
@@ -27,6 +30,11 @@ export const env = {
 }
 ```
 
+Then install the project dependencies
+```
+npm i
+```
+
 Now you can either serve the project locally for development
 ```
 ng serve
@@ -34,10 +42,10 @@ ng serve
 
 Build the files for production
 ```
-ng build
+ng build (--prod)
 ```
 
-Or deploy it using Firebase
+And deploy it using Firebase
 ```
-ng deploy
+firebase deploy
 ```
