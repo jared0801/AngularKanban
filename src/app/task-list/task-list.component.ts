@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 
 import { transferArrayItem, moveItemInArray, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
@@ -10,7 +10,8 @@ import 'firebase/firestore';
 
 import { AuthService } from '../services/auth.service';
 import { TaskDialogComponent, TaskDialogResult } from '../task-dialog/task-dialog.component';
-import { Task } from '../task/task';
+import { Task } from '../task/task.model';
+import { ConfirmationDialogComponent, ConfirmationDialogResult } from '../confirmation-dialog/confirmation-dialog.component';
 
 const getObservable = (collection: AngularFirestoreCollection<Task>) => {
   const subject = new BehaviorSubject([] as Task[]);
@@ -73,6 +74,8 @@ export class TaskListComponent {
     done: [],
   }
 
+  @Output() deleteAll = new EventEmitter();
+
   constructor(private dialog: MatDialog, private store: AngularFirestore, public auth: AuthService) {
     auth.user$.subscribe(user => {
       // Set authorized user
@@ -130,11 +133,7 @@ export class TaskListComponent {
 
       // Find the new order of tasks in this list to update db
       const { newListOrder } = this.reorder(event.previousContainer, event.container);
-      
-      this.store.firestore.runTransaction(() => {
-        // Delete from the old list & add to the new one
-        return this.store.collection('userData').doc('order').collection(this.uid).doc(event.container.id).set({ order: newListOrder }, { merge: true })
-      });
+      this.store.collection('userData').doc('order').collection(this.uid).doc(event.container.id).set({ order: newListOrder }, { merge: true });
       return;
     }
 
@@ -184,6 +183,39 @@ export class TaskListComponent {
     });
     // Add the task to todo collection afterClosed
     dialogRef.afterClosed().subscribe((result: TaskDialogResult) => this.store.collection('userData').doc(this.uid).collection('todo').add(result.task));
+  }
+
+  deleteTasks() {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '270px',
+      data: "Are you sure you want to delete ALL of your tasks?"
+    });
+
+    // Either delete or update based on the dialog result
+    dialogRef.afterClosed().subscribe((result: ConfirmationDialogResult) => {
+      if(result.confirm) {
+        console.log('delete all');
+
+        if(this.todo) {
+          const data: Task[] = this.todo.getValue();
+          data.forEach(doc => {
+            this.store.collection('userData').doc(this.uid).collection('todo').doc(doc.id).delete();
+          })
+        }
+        if(this.inProgress) {
+          const data: Task[] = this.inProgress.getValue();
+          data.forEach(doc => {
+            this.store.collection('userData').doc(this.uid).collection('inProgress').doc(doc.id).delete();
+          })
+        }
+        if(this.done) {
+          const data: Task[] = this.done.getValue();
+          data.forEach(doc => {
+            this.store.collection('userData').doc(this.uid).collection('done').doc(doc.id).delete();
+          })
+        }
+      }
+    });
   }
 
 }

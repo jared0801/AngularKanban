@@ -19,13 +19,15 @@ import { environment } from 'src/environments/environment';
 import { TaskComponent } from './task/task.component';
 import { TaskDialogComponent } from './task-dialog/task-dialog.component';
 import { TaskListComponent } from './task-list/task-list.component';
+import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     TaskComponent,
     TaskDialogComponent,
-    TaskListComponent
+    TaskListComponent,
+    ConfirmationDialogComponent
   ],
   imports: [
     BrowserModule,
