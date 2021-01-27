@@ -2,14 +2,14 @@
 
     <div class="project-options">        
         <mat-form-field appearance="fill" color="secondary">
-            <mat-label>Current Project</mat-label>
+            <mat-label>Projects</mat-label>
             <mat-select (selectionChange)="change($event)">
                 <mat-option value="default">default</mat-option>
                 <mat-option *ngFor="let project of projects | async" [value]="project.title">{{ project.title }}</mat-option>
             </mat-select>
         </mat-form-field>
 
-        <h2>{{ currentProject }}</h2>
+        <h2>{{ currentProject.charAt(0).toUpperCase() + currentProject.slice(1) }} Project</h2>
 
         <form class="project-form">
             <mat-form-field appearance="fill">

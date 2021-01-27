@@ -21,6 +21,18 @@ export class TaskDialogComponent {
   ) {
 
   }
+
+  /**
+   * Creates a new task with this.data so long as it contains a valid title
+   * @returns void
+   */
+  create(): void {
+    if(this.data.task?.title && this.data.task.title.length > 0) {
+      this.dialogRef.close(this.data);
+    } else {
+      this.dialogRef.close({});
+    }
+  }
   
   /**
    * Closes the dialog and either restores the backupTask if the task already exists in the database
