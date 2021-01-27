@@ -7,9 +7,16 @@ import { Task } from './task.model';
   styleUrls: ['./task.component.css']
 })
 export class TaskComponent {
-
+  /**
+   * Task object containing all information about one individual task
+   */
   @Input() task!: Task;
+
+  /**
+   * Emits an event when the user wishes to edit a task
+   */
   @Output() edit = new EventEmitter();
+  
   constructor() { }
 
 }

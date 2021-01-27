@@ -8,6 +8,11 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class ConfirmationDialogComponent {
 
+  /**
+   * @constructor
+   * @param  {MatDialogRef<TaskDialogComponent>} dialogRef - Reference to MatDialog object
+   * @param  {string} data - Text to be displayed in this dialog
+   */
   constructor(
     public dialogRef: MatDialogRef<ConfirmationDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: string
@@ -18,7 +23,7 @@ export class ConfirmationDialogComponent {
 
 }
 
-
+// Tells the implementing component whether the user confirmed this dialog
 export interface ConfirmationDialogResult {
   confirm: boolean
 }

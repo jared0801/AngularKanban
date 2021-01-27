@@ -9,7 +9,7 @@ import 'firebase/firestore';
 import { ConfirmationDialogComponent, ConfirmationDialogResult } from '../confirmation-dialog/confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
-
+// Stores the ordering of tasks in a container by storing task IDs in an array for each container
 interface OrderList {
   [propName: string]: any;
   todo: string[],
@@ -17,7 +17,13 @@ interface OrderList {
   done: string[]
 }
 
-const getObservable = (collection: AngularFirestoreCollection<any>) => {
+/**
+ * Creates a behavior subject for a db collection
+ * This improves the user experience by maintaining a more consistent state between the browser and db
+ * @param  {AngularFirestoreCollection<any>} collection
+ * @returns BehaviorSubject
+ */
+const getObservable = (collection: AngularFirestoreCollection<any>): BehaviorSubject<any> => {
   const subject = new BehaviorSubject([] as any[]);
 
   collection.valueChanges({ idField: 'id' }).subscribe((val: any[]) => {
@@ -27,6 +33,12 @@ const getObservable = (collection: AngularFirestoreCollection<any>) => {
   return subject;
 }
 
+/**
+ * Sorts tasks in the browser according to their order in the db
+ * @param  {AngularFirestoreDocument<firebase.firestore.DocumentData>} orderDoc - Firestore document containing Task order for one container
+ * @param  {string[]} orderList - Array of IDs (stored in orderDoc) that represent task order
+ * @param  {BehaviorSubject<Task[]>|undefined} bh - The collection of tasks to be ordered
+ */
 const updateOrdering = (
   orderDoc: AngularFirestoreDocument<firebase.firestore.DocumentData>,
   orderList: string[],
@@ -35,10 +47,8 @@ const updateOrdering = (
   let ordered: string[] = [];
   orderDoc.valueChanges().subscribe((v: any) => {
     // When ordering changes, update orderList for this collection
-    if(v?.order)
-    {
-      orderList = v.order;
-    }
+    if(v?.order) orderList = v.order;
+
     bh?.subscribe((val: Task[]) => {
       // Sort this collection according to orderList
       val.sort((a: Task, b: Task): number => {
@@ -55,6 +65,7 @@ const updateOrdering = (
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.css']
 })
+
 export class ProjectsComponent implements OnInit {
   @Input() user!: any;
   currentProject: string = "default";
@@ -77,57 +88,58 @@ export class ProjectsComponent implements OnInit {
   constructor(private store: AngularFirestore, private dialog: MatDialog) {
   }
 
+  // ngOnInit used instead of constructor so that this.user (passed as prop) is already defined
   ngOnInit() {
+    // Get list of all projects to display in dropdown
     this.projectsCollection = this.store.collection('userData').doc(this.user.uid).collection('projects');
-
     this.projects = getObservable(this.projectsCollection);
-    this.projects.subscribe((p) => {
-      if(!p) return;
-      console.log(p);
-      // Get collections for each type of task
-      const todoCollection: AngularFirestoreCollection<Task> = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('todo');
-      const inProgressCollection: AngularFirestoreCollection<Task> = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('inProgress');
-      const doneCollection: AngularFirestoreCollection<Task> = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('done');
 
-      // Create an observable for each task collection
-      const todo = getObservable(todoCollection);
-      const inProgress = getObservable(inProgressCollection);
-      const done = getObservable(doneCollection);
 
-      // Get collections for each task type order array
-      const todoOrder = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('order').doc('todo');
-      const inProgressOrder = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('order').doc('inProgress');
-      const doneOrder = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('order').doc('done');
+    // Get collections for each type of task
+    const todoCollection: AngularFirestoreCollection<Task> = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('todo');
+    const inProgressCollection: AngularFirestoreCollection<Task> = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('inProgress');
+    const doneCollection: AngularFirestoreCollection<Task> = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('done');
 
-      // Get ordering for each collection
-      this.orderList.todo = updateOrdering(todoOrder, this.orderList.todo, todo);
-      this.orderList.inProgress = updateOrdering(inProgressOrder, this.orderList.inProgress, inProgress);
-      this.orderList.done = updateOrdering(doneOrder, this.orderList.done, done);
+    // Create an observable for each task collection
+    const todo = getObservable(todoCollection);
+    const inProgress = getObservable(inProgressCollection);
+    const done = getObservable(doneCollection);
 
-      // Initialize the currently selected project object to pass to the task-list component
-      this.project = {
-        title: this.currentProject,
-        collections: {
-          todo: todoCollection,
-          inProgress: inProgressCollection,
-          done: doneCollection
-        },
-        todo,
-        inProgress,
-        done,
-        order: {
-          todo: todoOrder,
-          inProgress: inProgressOrder,
-          done: doneOrder
-        },
-        orderList: this.orderList
-      }
+    // Get collections for each task type order array
+    const todoOrder = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('order').doc('todo');
+    const inProgressOrder = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('order').doc('inProgress');
+    const doneOrder = this.store.collection('userData').doc(this.user.uid).collection('projects').doc(this.currentProject).collection('order').doc('done');
+
+    // Get ordering for each collection
+    this.orderList.todo = updateOrdering(todoOrder, this.orderList.todo, todo);
+    this.orderList.inProgress = updateOrdering(inProgressOrder, this.orderList.inProgress, inProgress);
+    this.orderList.done = updateOrdering(doneOrder, this.orderList.done, done);
+
+    // Initialize the currently selected project object to pass to the task-list component
+    this.project = {
+      title: this.currentProject,
+      collections: {
+        todo: todoCollection,
+        inProgress: inProgressCollection,
+        done: doneCollection
+      },
+      todo,
+      inProgress,
+      done,
+      order: {
+        todo: todoOrder,
+        inProgress: inProgressOrder,
+        done: doneOrder
+      },
+      orderList: this.orderList
+    }
 
       
-    });
   }
   /**
-   * @param  {any} event
+   * Called when the project select dropdown value is changed.
+   * Changes the tasks according to the newly selected project.
+   * @param  {any} event - Browser select event
    * @returns void
    */
   change(event: any): void {
@@ -135,8 +147,10 @@ export class ProjectsComponent implements OnInit {
       this.changeTasks(event.value);
     }
   }
+
   /**
-   * @param  {any} event
+   * Updates this.project reference according to a given projectTitle
+   * @param  {string} projectTitle - Title of project to be displayed
    * @returns void
    */
   changeTasks(projectTitle: string): void {
@@ -169,6 +183,10 @@ export class ProjectsComponent implements OnInit {
     }
   }
 
+  /**
+   * Adds a project named by this.projectName to the db
+   * @returns void
+   */
   newProject(): void {
     if (!this.newProjectRules()) return;
     const project = {
@@ -180,11 +198,19 @@ export class ProjectsComponent implements OnInit {
     });
   }
 
+  /**
+   * Returns true if this.projectName meets all project name rules
+   * @returns boolean
+   */
   newProjectRules(): boolean {
     return this.projectName.length >= 2 && this.projectName.length <= 20;
   }
 
-  deleteProject() {
+  /**
+   * Deletes all tasks within a project then deletes the project itself from the db
+   * @returns void
+   */
+  deleteProject(): void {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '270px',
       data: "Are you sure you want to delete this project and all of its tasks?"

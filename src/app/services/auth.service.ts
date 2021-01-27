@@ -35,9 +35,13 @@ export class AuthService {
   }
 
   async googleSignin() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    const credentials = await this.afAuth.signInWithPopup(provider);
-    return this.updateUserData(credentials.user);
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const credentials = await this.afAuth.signInWithPopup(provider);
+      return this.updateUserData(credentials.user);
+    } catch(err) {
+      return {};
+    }
   }
 
   async signOut() {
