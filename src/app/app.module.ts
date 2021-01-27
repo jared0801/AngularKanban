@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { AngularFireModule } from '@angular/fire';
@@ -20,6 +21,7 @@ import { TaskComponent } from './task/task.component';
 import { TaskDialogComponent } from './task-dialog/task-dialog.component';
 import { TaskListComponent } from './task-list/task-list.component';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
+import { ProjectsComponent } from './projects/projects.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,8 @@ import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-
     TaskComponent,
     TaskDialogComponent,
     TaskListComponent,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    ProjectsComponent
   ],
   imports: [
     BrowserModule,
@@ -38,6 +41,7 @@ import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-
     DragDropModule,
     MatButtonModule,
     MatDialogModule,
+    MatSelectModule,
     FormsModule,
     MatInputModule,
     AngularFireModule.initializeApp(environment.firebase),

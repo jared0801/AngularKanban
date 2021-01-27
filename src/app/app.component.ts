@@ -8,8 +8,9 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
 
-  constructor(public auth: AuthService) {
-    // Empty for now
-  }
+  /**
+   * @param  {AuthService} auth - Google authorized user object used as a required prop for the projects component.
+   */
+  constructor(public auth: AuthService) {}
 
 }

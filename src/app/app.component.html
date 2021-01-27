@@ -22,7 +22,7 @@
 
 <div class="content-wrapper">
   <div *ngIf="auth.user$ | async as user; else other">
-    <app-task-list></app-task-list>
+    <app-projects [user]="user"></app-projects>
   </div>
 
   <ng-template #other>

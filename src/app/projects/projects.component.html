@@ -1,0 +1,35 @@
+<div class="project">
+
+    <div class="project-options">
+        <div>
+            <button color="warn" mat-flat-button (click)="deleteProject()">
+                <mat-icon>delete</mat-icon>Delete Project
+            </button>
+        </div>
+
+        
+        <mat-form-field appearance="fill" color="secondary">
+            <mat-label>{{ project.title }}</mat-label>
+            <mat-select (selectionChange)="change($event)">
+                <mat-option value="default">default</mat-option>
+                <mat-option *ngFor="let project of projects | async" [value]="project.title">{{ project.title }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <form class="project-form">
+            <mat-form-field appearance="fill">
+                <mat-label>New Project Name</mat-label>
+                <input [(ngModel)]="projectName" matInput name="project">
+            </mat-form-field>
+            <div>
+                <button *ngIf="!newProjectRules()" mat-flat-button disabled>
+                    <mat-icon>add</mat-icon>Create Project
+                </button>
+                <button *ngIf="newProjectRules()" color="primary" mat-flat-button (click)="newProject()">
+                    <mat-icon>add</mat-icon>Create Project
+                </button>
+            </div>
+        </form>
+    </div>
+    <app-task-list [project]="project"></app-task-list>
+</div>

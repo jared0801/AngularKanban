@@ -1,58 +1,14 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, Input, EventEmitter } from '@angular/core';
 
 import { transferArrayItem, moveItemInArray, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument } from '@angular/fire/firestore';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject } from 'rxjs';
-import firebase from 'firebase/app';
-import 'firebase/firestore';
 
 
-import { AuthService } from '../services/auth.service';
 import { TaskDialogComponent, TaskDialogResult } from '../task-dialog/task-dialog.component';
 import { Task } from '../task/task.model';
-import { ConfirmationDialogComponent, ConfirmationDialogResult } from '../confirmation-dialog/confirmation-dialog.component';
+import { Project } from '../projects/project.model';
 
-const getObservable = (collection: AngularFirestoreCollection<Task>) => {
-  const subject = new BehaviorSubject([] as Task[]);
-
-  collection.valueChanges({ idField: 'id' }).subscribe((val: Task[]) => {
-    subject.next(val);
-  });
-
-  return subject;
-}
-
-
-const updateOrdering = (
-  orderDoc: AngularFirestoreDocument<firebase.firestore.DocumentData>,
-  orderList: string[],
-  bh: BehaviorSubject<Task[]> | undefined
-) => {
-let ordered: string[] = [];
-orderDoc.valueChanges().subscribe((v: any) => {
-  // When ordering changes, update orderList for this collection
-  if(v?.order)
-  {
-    orderList = v.order;
-  }
-  bh?.subscribe((val: Task[]) => {
-    // Sort this collection according to orderList
-    val.sort((a: Task, b: Task): number => {
-      return orderList.indexOf(a.id) - orderList.indexOf(b.id);
-    });
-  });
-});
-
-return ordered;
-}
-
-interface OrderList {
-  [propName: string]: any;
-  todo: string[],
-  inProgress: string[],
-  done: string[]
-}
 
 @Component({
   selector: 'app-task-list',
@@ -61,46 +17,19 @@ interface OrderList {
 })
 export class TaskListComponent {
   uid: string = '';
-  todo: BehaviorSubject<Task[]> | undefined;
-  inProgress: BehaviorSubject<Task[]> | undefined;
-  done: BehaviorSubject<Task[]> | undefined;
-  
-  todoOrder?: AngularFirestoreDocument<firebase.firestore.DocumentData>;
-  inProgressOrder?: AngularFirestoreDocument<firebase.firestore.DocumentData>;
-  doneOrder?: AngularFirestoreDocument<firebase.firestore.DocumentData>;
-  orderList: OrderList = {
-    todo: [],
-    inProgress: [],
-    done: [],
-  }
 
-  @Output() deleteAll = new EventEmitter();
+  @Input() project!: Project;
 
-  constructor(private dialog: MatDialog, private store: AngularFirestore, public auth: AuthService) {
-    auth.user$.subscribe(user => {
-      // Set authorized user
-      this.uid = user.uid;
-
-      // Get all tasks
-      this.todo = getObservable(this.store.collection('userData').doc(this.uid).collection('todo'));
-      this.inProgress = getObservable(this.store.collection('userData').doc(this.uid).collection('inProgress'));
-      this.done = getObservable(this.store.collection('userData').doc(this.uid).collection('done'));
-
-      
-      // Get ordering for each collection
-      this.todoOrder = this.store.collection('userData').doc('order').collection(this.uid).doc('todo');
-      this.inProgressOrder = this.store.collection('userData').doc('order').collection(this.uid).doc('inProgress');
-      this.doneOrder = this.store.collection('userData').doc('order').collection(this.uid).doc('done');
-      this.orderList.todo = updateOrdering(this.todoOrder, this.orderList.todo, this.todo);
-      this.orderList.inProgress = updateOrdering(this.inProgressOrder, this.orderList.inProgress, this.inProgress);
-      this.orderList.done = updateOrdering(this.doneOrder, this.orderList.done, this.done);
-      
-    });
+  /**
+   * @param  {MatDialog} dialog - Dialog for creating new tasks
+   * @param  {AngularFirestore} store - Firestore database
+   */
+  constructor(private dialog: MatDialog, private store: AngularFirestore) {
   }
 
   
 
-  reorder(prevContainer: CdkDropList<any>, newContainer: CdkDropList<any>, newIndex?: number) {
+  reorder(prevContainer: CdkDropList<any>, newContainer: CdkDropList<any>) {
     const prevList = [];
     const newList = [];
 
@@ -133,7 +62,11 @@ export class TaskListComponent {
 
       // Find the new order of tasks in this list to update db
       const { newListOrder } = this.reorder(event.previousContainer, event.container);
-      this.store.collection('userData').doc('order').collection(this.uid).doc(event.container.id).set({ order: newListOrder }, { merge: true });
+      //this.store.collection('userData').doc('order').collection(this.uid).doc(event.container.id).set({ order: newListOrder }, { merge: true });
+
+
+      this.project.order?.[event.container.id]?.set({ order: newListOrder }, { merge: true });
+
       return;
     }
 
@@ -141,15 +74,16 @@ export class TaskListComponent {
     
     transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
 
-    const { prevListOrder, newListOrder } = this.reorder(event.previousContainer, event.container, event.currentIndex);
+    const { prevListOrder, newListOrder } = this.reorder(event.previousContainer, event.container);
 
-    this.store.firestore.runTransaction(() => {
+    this.store.firestore.runTransaction((): any => {
       // Delete from the old list & add to the new one
+      if(!this.project.collections || !this.project.order) return;
       return Promise.all([
-        this.store.collection('userData').doc(this.uid).collection(event.previousContainer.id).doc(item.id).delete(),
-        this.store.collection('userData').doc(this.uid).collection(event.container.id).doc(item.id).set(item),
-        this.store.collection('userData').doc('order').collection(this.uid).doc(event.previousContainer.id).set({ order: prevListOrder }, { merge: true }),
-        this.store.collection('userData').doc('order').collection(this.uid).doc(event.container.id).set({ order: newListOrder }, { merge: true })
+        this.project.collections[event.previousContainer.id].doc(item.id).delete(),
+        this.project.collections[event.container.id].doc(item.id).set(item),
+        this.project.order[event.previousContainer.id].set({ order: prevListOrder }, { merge: true }),
+        this.project.order[event.container.id].set({ order: newListOrder }, { merge: true }),
       ])
     });
   }
@@ -165,11 +99,13 @@ export class TaskListComponent {
     });
     // Either delete or update based on the dialog result
     dialogRef.afterClosed().subscribe((result: TaskDialogResult) => {
-      if(result.delete) {
-        this.store.collection('userData').doc(this.uid).collection(list).doc(task.id).delete();
-      } else {
-        this.store.collection('userData').doc(this.uid).collection(list).doc(task.id).update(task);
+      if(!this.project.collections) return;
+      if(result?.delete) {
+        this.project.collections[list].doc(task.id).delete();
+      } else if (result) {
+        this.project.collections[list].doc(task.id).update(task)
       }
+      
     })
   }
 
@@ -182,38 +118,9 @@ export class TaskListComponent {
       }
     });
     // Add the task to todo collection afterClosed
-    dialogRef.afterClosed().subscribe((result: TaskDialogResult) => this.store.collection('userData').doc(this.uid).collection('todo').add(result.task));
-  }
-
-  deleteTasks() {
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: '270px',
-      data: "Are you sure you want to delete ALL of your tasks?"
-    });
-
-    // Either delete or update based on the dialog result
-    dialogRef.afterClosed().subscribe((result: ConfirmationDialogResult) => {
-      if(result.confirm) {
-        console.log('delete all');
-
-        if(this.todo) {
-          const data: Task[] = this.todo.getValue();
-          data.forEach(doc => {
-            this.store.collection('userData').doc(this.uid).collection('todo').doc(doc.id).delete();
-          })
-        }
-        if(this.inProgress) {
-          const data: Task[] = this.inProgress.getValue();
-          data.forEach(doc => {
-            this.store.collection('userData').doc(this.uid).collection('inProgress').doc(doc.id).delete();
-          })
-        }
-        if(this.done) {
-          const data: Task[] = this.done.getValue();
-          data.forEach(doc => {
-            this.store.collection('userData').doc(this.uid).collection('done').doc(doc.id).delete();
-          })
-        }
+    dialogRef.afterClosed().subscribe((result: TaskDialogResult) => {
+      if(result && this.project.collections && this.project.collections['todo']) {
+        this.project.collections['todo'].add(result.task);
       }
     });
   }

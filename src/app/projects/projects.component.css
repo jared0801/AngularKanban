@@ -1,0 +1,10 @@
+.project-form {
+    margin-left: 20px;
+}
+
+.project-options {
+    display: flex;
+    justify-content: space-between;
+    margin: 2em;
+    padding: 2px;
+}
