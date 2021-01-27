@@ -10,6 +10,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
@@ -44,6 +45,7 @@ import { ProjectsComponent } from './projects/projects.component';
     MatSelectModule,
     FormsModule,
     MatInputModule,
+    MatDividerModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
   ],

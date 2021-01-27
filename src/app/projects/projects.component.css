@@ -2,7 +2,7 @@
     margin-left: 20px;
 }
 
-.project-options {
+.project-options, .project-buttons {
     display: flex;
     justify-content: space-between;
     margin: 2em;
